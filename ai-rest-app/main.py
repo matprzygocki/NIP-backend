@@ -1,9 +1,14 @@
+import io
+from typing import BinaryIO, Annotated
+
 import numpy as np
+import pandas.io.formats.csvs
 import tensorflow as tf
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pandas import read_csv
+from pandas._typing import ReadCsvBuffer
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import MinMaxScaler
@@ -13,6 +18,9 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.models import Sequential
+
+
+SEED = 7
 
 app = FastAPI()
 
@@ -40,19 +48,25 @@ def health():
     return {"status": "UP"}
 
 
-@app.get("/predict/{csv_file}", response_class=JSONResponse)
-def predict_airline_passengers(csv_file, split_percentage: float = 0.67):
+@app.post("/predict/{csv_file}", response_class=JSONResponse)
+def predict_existing_file(csv_file, split_percentage: float = 0.67):
     return predict('./datasets/' + csv_file,  split_percentage)
 
 
-SEED = 7
+@app.post("/predict", response_class=JSONResponse)
+def predict_uploaded_file(file: Annotated[bytes, File()], split_percentage: float = 0.67):
+    return predict(file, split_percentage)
 
 
-def predict(path, split_percentage):
+def predict(path_or_content: str | BinaryIO, split_percentage):
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    dataset = read_dataset(path_or_content, scaler)
+    return predict_from_dataset(dataset, scaler, split_percentage)
+
+
+def predict_from_dataset(dataset, scaler, split_percentage):
     np.random.seed(SEED)
     tf.random.set_seed(SEED)
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    dataset = read_dataset(path, scaler)
     test, train = divide_dataset_into_training_and_test_data(dataset, split_percentage)
 
     # reshape into X=t and Y=t+1
@@ -138,7 +152,7 @@ def divide_dataset_into_training_and_test_data(dataset, split_percentage):
     return test, train
 
 
-def read_dataset(path, scaler):
+def read_dataset(path: str | ReadCsvBuffer[bytes], scaler):
     # load the dataset
     dataframe = read_csv(path, usecols=[1], engine='python')
     dataset = dataframe.values
