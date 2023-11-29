@@ -1,7 +1,9 @@
+import csv
 import io
 from typing import BinaryIO, Annotated
 
 import numpy as np
+import pandas as pd
 import pandas.io.formats.csvs
 import tensorflow as tf
 from fastapi import FastAPI, UploadFile, File
@@ -52,11 +54,14 @@ def health():
 def predict_existing_file(csv_file, split_percentage: float = 0.67):
     return predict('./datasets/' + csv_file,  split_percentage)
 
+# @app.get("/predict", response_class=JSONResponse)
+# async def get_predict():
+#     return {"message": "GET request to /predict endpoint"}
 
 @app.post("/predict", response_class=JSONResponse)
-def predict_uploaded_file(file: Annotated[bytes, File()], split_percentage: float = 0.67):
-    return predict(file, split_percentage)
-
+async def post_predict(file: UploadFile = File(...), split_percentage: float = 0.67):
+    path = f"./datasets/{file.filename}"
+    return predict(path,  split_percentage)
 
 def predict(path_or_content: str | BinaryIO, split_percentage):
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -152,15 +157,18 @@ def divide_dataset_into_training_and_test_data(dataset, split_percentage):
     return test, train
 
 
-def read_dataset(path: str | ReadCsvBuffer[bytes], scaler):
+def read_dataset(path: UploadFile | str, scaler):
     # load the dataset
-    dataframe = read_csv(path, usecols=[1], engine='python')
+    if type(path) is str:
+        dataframe = read_csv(path, usecols=[1], engine='python')
+    else:
+        with open(path) as readfile:
+            dataframe=pd.read_csv(readfile.read())
     dataset = dataframe.values
     dataset = dataset.astype('float32')
     # normalize the dataset
     dataset = scaler.fit_transform(dataset)
     return dataset
-
 
 # convert an array of values into a dataset matrix
 def offset_datasets_by_one(dataset):
