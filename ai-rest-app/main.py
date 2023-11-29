@@ -51,17 +51,18 @@ def health():
 
 
 @app.post("/predict/{csv_file}", response_class=JSONResponse)
-def predict_existing_file(csv_file, split_percentage: float = 0.67):
+def post_predict_existing_file(csv_file, split_percentage: float = 0.67):
     return predict('./datasets/' + csv_file,  split_percentage)
 
-# @app.get("/predict", response_class=JSONResponse)
-# async def get_predict():
-#     return {"message": "GET request to /predict endpoint"}
+@app.get("/predict/{csv_file}", response_class=JSONResponse)
+def get_predict_existing_file(csv_file, split_percentage: float = 0.67):
+    return predict('./datasets/' + csv_file,  split_percentage)
 
 @app.post("/predict", response_class=JSONResponse)
 async def post_predict(file: UploadFile = File(...), split_percentage: float = 0.67):
     path = f"./datasets/{file.filename}"
     return predict(path,  split_percentage)
+
 
 def predict(path_or_content: str | BinaryIO, split_percentage):
     scaler = MinMaxScaler(feature_range=(0, 1))
