@@ -46,7 +46,7 @@ def health():
     return {"status": "UP"}
 
 
-@app.post("/predict/{csv_file}", response_class=JSONResponse)
+@app.post("/predict/{predefined_file}", response_class=JSONResponse)
 def post_predict_existing_file(predefined_file: PredefinedLearningFile, split_percentage: float = 0.67):
     return predict(predefined_file.path(),  split_percentage)
 
