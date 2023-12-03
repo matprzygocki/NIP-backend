@@ -1,5 +1,4 @@
 from typing import BinaryIO
-
 import numpy as np
 import tensorflow as tf
 from fastapi import FastAPI, UploadFile, File
@@ -146,14 +145,13 @@ def divide_dataset_into_training_and_test_data(dataset, split_percentage):
     train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
     return test, train
 
-
 def read_dataset(path_or_file: UploadFile | str, scaler):
-    dataframe = read_csv(path_or_file, usecols=[1], engine='python')
-    dataset = dataframe.values
+    dataframe = read_csv(path_or_file, sep=';')
+    bitcoin_prices = dataframe['Open']
+    dataset = bitcoin_prices.values
     dataset = dataset.astype('float32')
-    dataset = scaler.fit_transform(dataset)
+    dataset = scaler.fit_transform(dataset.reshape(-1, 1))
     return dataset
-
 
 def offset_datasets_by_one(dataset):
     data_x, data_y = [], []
