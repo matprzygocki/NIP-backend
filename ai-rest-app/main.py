@@ -43,15 +43,15 @@ def health():
     return {"status": "UP"}
 
 
-@app.post("/predict/{predefined_file}", response_class=JSONResponse)
-def post_predict_existing_file(predefined_file: PredefinedLearningFile, split_percentage: float = 0.67, api_key: str = Security(get_api_key)):
+@app.post("/predict/{predefined_file}/{split_percentage}", response_class=JSONResponse)
+def post_predict_existing_file(split_percentage: float, predefined_file: PredefinedLearningFile, api_key: str = Security(get_api_key)):
     result = service.predict(predefined_file.path(), split_percentage)
     result_map_encoded = jsonable_encoder(result)
     return JSONResponse(content=result_map_encoded)
 
 
-@app.post("/predict", response_class=JSONResponse)
-async def post_predict(file: UploadFile = File(...), split_percentage: float = 0.67, api_key: str = Security(get_api_key)):
+@app.post("/predict/{split_percentage}", response_class=JSONResponse)
+async def post_predict(split_percentage: float, file: UploadFile = File(...), api_key: str = Security(get_api_key)):
     result = service.predict(file.file, split_percentage)
     result_map_encoded = jsonable_encoder(result)
     return JSONResponse(content=result_map_encoded)
