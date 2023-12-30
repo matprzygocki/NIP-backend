@@ -1,5 +1,4 @@
 package com.example.keycloakmodule;
-
 import com.example.keycloakmodule.config.KeycloakServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +10,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+//https://www.baeldung.com/spring-boot-keycloak?fbclid=IwAR3UdI_3jgpaJwYehwE-RSiaUT7Zp1FBQMXJ4ZStnozTaDctL6kRr1Ncnzk
 
 @SpringBootApplication(exclude = LiquibaseAutoConfiguration.class)
 @EnableConfigurationProperties(KeycloakServerProperties.class)
