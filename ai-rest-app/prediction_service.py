@@ -51,8 +51,8 @@ def predict_from_dataset(dataset, scaler, split_percentage):
     train_predict_plot = shift_results(dataset, look_back, len(train_predict) + look_back, train_predict)
     test_predict_plot = shift_results(dataset, len(train_predict) + (look_back * 2) + 1, len(dataset) - 1, test_predict)
 
-    log.print_mean_squared_error(test_predict, test_y, train_predict, train_y)
-    log.print_r2_score(test_predict, test_y, train_predict, train_y)
+    train_score, test_score = log.print_mean_squared_error(test_predict, test_y, train_predict, train_y)
+    train_r2, test_r2 = log.print_r2_score(test_predict, test_y, train_predict, train_y)
 
     return {
         "train": {
@@ -62,6 +62,14 @@ def predict_from_dataset(dataset, scaler, split_percentage):
         "test": {
             "x": list(map(lambda arr: arr[0][0], test_x.tolist())),
             "y": test_predict_plot[~np.isnan(test_predict_plot)].tolist()
+        },
+        "meanSquaredError": {
+            "train": train_score,
+            "test": test_score
+        },
+        "r2": {
+            "train": train_r2,
+            "test": test_r2
         }
     }
 

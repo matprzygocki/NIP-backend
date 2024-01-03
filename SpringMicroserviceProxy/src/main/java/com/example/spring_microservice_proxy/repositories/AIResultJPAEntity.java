@@ -21,6 +21,9 @@ public class AIResultJPAEntity {
     @Column(name = "ID")
     private String id;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "CREATION_TIMESTAMP")
     @CreationTimestamp
     private Instant createTimestamp;
@@ -46,6 +49,10 @@ public class AIResultJPAEntity {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

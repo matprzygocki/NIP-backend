@@ -18,6 +18,8 @@
 		<keycloak.version>22.0.0</keycloak.version>
 		<resteasy-jackson2-provider.version>6.2.4.Final</resteasy-jackson2-provider.version>
 		<spring-cloud.version>2022.0.4</spring-cloud.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
