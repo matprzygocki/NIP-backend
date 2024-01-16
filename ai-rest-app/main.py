@@ -11,8 +11,7 @@ from fastapi.security import APIKeyHeader
 app = FastAPI()
 
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
+    "http://localhost"
 ]
 
 app.add_middleware(
@@ -43,8 +42,14 @@ def health():
     return {"status": "UP"}
 
 
+@app.get("/status")
+def health():
+    return "AI-REST-APP-PY is up and running"
+
+
 @app.post("/predict/{predefined_file}/{split_percentage}", response_class=JSONResponse)
-def post_predict_existing_file(split_percentage: float, predefined_file: PredefinedLearningFile, api_key: str = Security(get_api_key)):
+def post_predict_existing_file(split_percentage: float, predefined_file: PredefinedLearningFile,
+                               api_key: str = Security(get_api_key)):
     result = service.predict(predefined_file.path(), split_percentage)
     result_map_encoded = jsonable_encoder(result)
     return JSONResponse(content=result_map_encoded)
@@ -59,5 +64,16 @@ async def post_predict(split_percentage: float, file: UploadFile = File(...), ap
 
 if __name__ == "__main__":
     import uvicorn
+    import py_eureka_client.eureka_client as eureka_client
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    rest_port = 8085
+    eureka_client.init(
+        eureka_server="http://localhost:8079/",
+        app_name="AI-REST-APP-PY",
+        instance_ip="localhost",
+        instance_port=rest_port,
+        instance_host="localhost",
+        health_check_url="/health",
+        status_page_url="/status"
+    )
+    uvicorn.run(app, host="localhost", port=rest_port)
