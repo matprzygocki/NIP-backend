@@ -17,9 +17,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +52,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, Jwt2AuthenticationConverter authenticationConverter) throws Exception {
         http.oauth2ResourceServer(customizer -> customizer.jwt(jwtCustomizer -> jwtCustomizer.jwtAuthenticationConverter(authenticationConverter)));
         http.anonymous(customizer -> {});
-        http.cors(customizer -> customizer.configurationSource(corsConfigurationSource()));
         http.sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(AbstractHttpConfigurer::disable);
         http.exceptionHandling(customizer -> customizer.authenticationEntryPoint((request, response, authException) -> {
@@ -63,26 +59,12 @@ public class SecurityConfig {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
         }));
         http.authorizeRequests(auth -> auth
-//                .requestMatchers(new AntPathRequestMatcher("/test/user")).hasAuthority("user")
-//                .requestMatchers(new AntPathRequestMatcher("/test/technician")).hasAuthority("technician")
-//                .requestMatchers(new AntPathRequestMatcher("/test/user-or-technician")).hasAnyAuthority("user", "technician")
-                .requestMatchers(new AntPathRequestMatcher("/status")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/status/**")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/health/**")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
+                .requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll()
                 .anyRequest().authenticated());
         return http.build();
-    }
-
-    private CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("*"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
     }
 
 }

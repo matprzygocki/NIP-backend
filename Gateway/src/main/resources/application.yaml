@@ -1,0 +1,39 @@
+eureka:
+  instance:
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8079/eureka
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:8000"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        - id: authorization-service
+          uri: lb://AUTHORIZATION-SERVICE
+          predicates:
+            - Path=/authorization-service/**
+          filters:
+            - StripPrefix=1
+        - id: microservice-proxy
+          uri: lb://SPRING-MICROSERVICE-PROXY
+          predicates:
+            - Path=/proxy/**
+          filters:
+            - StripPrefix=1
+        - id: ai-rest-app-py
+          uri: lb://AI-REST-APP-PY
+          predicates:
+            - Path=/ai/**
+          filters:
+            - StripPrefix=1
