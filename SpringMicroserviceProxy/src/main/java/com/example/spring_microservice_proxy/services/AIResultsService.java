@@ -2,14 +2,11 @@ package com.example.spring_microservice_proxy.services;
 
 import com.example.spring_microservice_proxy.repositories.AIResultJPAEntity;
 import com.example.spring_microservice_proxy.repositories.AIResultsRepository;
+import com.example.spring_microservice_proxy.services.ai_results.AIResultService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
@@ -18,15 +15,12 @@ public class AIResultsService {
     private static final Double SPLIT_PERCENTAGE_DEFAULT = 0.5d;
 
     private final AIResultsRepository repository;
-    private final WebClient aiWebClient;
-
-    @Value("${ai-api-key}")
-    private String aiApiKey;
+    private final AIResultService aiResultService;
 
     @Autowired
-    public AIResultsService(AIResultsRepository repository, WebClient aiWebClient) {
+    public AIResultsService(AIResultsRepository repository, AIResultService aiResultService) {
         this.repository = repository;
-        this.aiWebClient = aiWebClient;
+        this.aiResultService = aiResultService;
     }
 
     public Optional<AIResultJPAEntity> get(String name) {
@@ -38,12 +32,7 @@ public class AIResultsService {
             splitPercentage = SPLIT_PERCENTAGE_DEFAULT;
         }
 
-        String result = aiWebClient.post()
-                .uri("/predict/" + name + "/" + splitPercentage)
-                .header("X-API-Key", aiApiKey)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block(Duration.of(100, ChronoUnit.SECONDS));
+        String result = aiResultService.getResults(name, splitPercentage);
 
         AIResultJPAEntity entity = new AIResultJPAEntity();
         entity.setName(name);
@@ -52,5 +41,4 @@ public class AIResultsService {
 
         return repository.save(entity);
     }
-
 }
