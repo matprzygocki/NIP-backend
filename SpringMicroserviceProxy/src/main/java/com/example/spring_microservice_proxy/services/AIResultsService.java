@@ -12,8 +12,6 @@ import java.util.Optional;
 @Service
 public class AIResultsService {
 
-    private static final Double SPLIT_PERCENTAGE_DEFAULT = 0.5d;
-
     private final AIResultsRepository repository;
     private final AIResultService aiResultService;
 
@@ -28,10 +26,6 @@ public class AIResultsService {
     }
 
     public AIResultJPAEntity createNew(String name, Double splitPercentage) {
-        if (splitPercentage == null) {
-            splitPercentage = SPLIT_PERCENTAGE_DEFAULT;
-        }
-
         String result = aiResultService.getResults(name, splitPercentage);
 
         AIResultJPAEntity entity = new AIResultJPAEntity();
