@@ -66,7 +66,7 @@ if __name__ == "__main__":
     import uvicorn
     import py_eureka_client.eureka_client as eureka_client
 
-    rest_port = 8085
+    rest_port = 8086
     eureka_client.init(
         eureka_server="http://localhost:8079/",
         app_name="AI-REST-APP-PY",

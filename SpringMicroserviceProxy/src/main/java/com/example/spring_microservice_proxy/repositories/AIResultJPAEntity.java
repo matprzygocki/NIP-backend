@@ -39,6 +39,9 @@ public class AIResultJPAEntity {
     @Column(name = "CONTENT")
     private String content;
 
+    @Column(name = "split")
+    private double split;
+
     public String getContent() {
         return content;
     }
@@ -53,6 +56,10 @@ public class AIResultJPAEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setSplit(double split) {
+        this.split = split;
     }
 
 }

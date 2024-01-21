@@ -2,8 +2,10 @@ package com.example.spring_microservice_proxy.endpoints;
 
 import com.example.spring_microservice_proxy.repositories.AIResultJPAEntity;
 import com.example.spring_microservice_proxy.services.AIResultsService;
-import com.example.spring_microservice_proxy.services.ai_results.AIResultService;
+import com.example.spring_microservice_proxy.services.ai_results.AIAPIRequestService;
 import jakarta.ws.rs.QueryParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,20 +21,23 @@ import java.util.Optional;
 @RequestMapping("predict-ai")
 public class PredictionEndpoint {
 
-    private static final Double SPLIT_PERCENTAGE_DEFAULT = 0.5d;
-    private final AIResultsService resultsService;
-    private final AIResultService aiResultService;
+    private static final Logger LOG = LoggerFactory.getLogger(PredictionEndpoint.class);
 
-    PredictionEndpoint(AIResultsService resultsService, AIResultService aiResultService) {
+    private static final Double SPLIT_PERCENTAGE_DEFAULT = 0.67d;
+    private final AIResultsService resultsService;
+    private final AIAPIRequestService AIAPIRequestService;
+
+    PredictionEndpoint(AIResultsService resultsService, AIAPIRequestService AIAPIRequestService) {
         this.resultsService = resultsService;
-        this.aiResultService = aiResultService;
+        this.AIAPIRequestService = AIAPIRequestService;
     }
 
     @PostMapping("{name}")
-    @PreAuthorize("hasAuthority('technician')")
+    @PreAuthorize("hasAnyAuthority('user', 'technician')")
     public ResponseEntity<String> predict(@PathVariable String name, @QueryParam("splitPercentage") Double splitPercentage) {
+        LOG.info("Predicting AI...");
         Double split = splitPercentage == null ? SPLIT_PERCENTAGE_DEFAULT : splitPercentage;
-        Optional<AIResultJPAEntity> existingResult = resultsService.get(name);
+        Optional<AIResultJPAEntity> existingResult = resultsService.find(name, split);
         return existingResult
                 .map(entity -> ResponseEntity.ok(entity.getContent()))
                 .orElseGet(() -> ResponseEntity.ok(resultsService.createNew(name, split).getContent()));
@@ -42,6 +47,6 @@ public class PredictionEndpoint {
     @PreAuthorize("hasAuthority('technician')")
     public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file, @QueryParam("splitPercentage") Double splitPercentage) {
         Double split = splitPercentage == null ? SPLIT_PERCENTAGE_DEFAULT : splitPercentage;
-        return ResponseEntity.ok(aiResultService.getResults(file, split));
+        return ResponseEntity.ok(AIAPIRequestService.getResults(file, split));
     }
 }
