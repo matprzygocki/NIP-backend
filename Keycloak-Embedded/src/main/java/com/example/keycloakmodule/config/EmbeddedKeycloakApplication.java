@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -52,19 +53,33 @@ public class EmbeddedKeycloakApplication extends KeycloakApplication {
     }
 
     private void createNIPRealm() {
+        if (!keycloakServerProperties.isForceReload()) {
+            LOG.info("Not importing NIP realm due to forceReload parameter is equal to false");
+            return;
+        }
+
         KeycloakSession session = KeycloakApplication.getSessionFactory().create();
         try {
             session.getTransactionManager().begin();
             RealmManager manager = new RealmManager(session);
-            Optional.ofNullable(manager.getRealm(keycloakServerProperties.getRealmName())).ifPresent(manager::removeRealm);
-            Resource realmImportFile = new ClassPathResource(keycloakServerProperties.getRealmImportFile());
-            manager.importRealm(JsonSerialization.readValue(realmImportFile.getInputStream(), RealmRepresentation.class));
+            removeNIPRealm(manager);
+            importNIPRealm(manager);
             session.getTransactionManager().commit();
+            LOG.info("Successfully imported realm: {}", keycloakServerProperties.getRealmName());
         } catch (Exception exception) {
             LOG.warn("Failed to import Realm json file: {}", exception.getMessage());
             session.getTransactionManager().rollback();
         } finally {
             session.close();
         }
+    }
+
+    private void removeNIPRealm(RealmManager manager) {
+        Optional.ofNullable(manager.getRealm(keycloakServerProperties.getRealmName())).ifPresent(manager::removeRealm);
+    }
+
+    private void importNIPRealm(RealmManager manager) throws IOException {
+        Resource realmImportFile = new ClassPathResource(keycloakServerProperties.getRealmImportFile());
+        manager.importRealm(JsonSerialization.readValue(realmImportFile.getInputStream(), RealmRepresentation.class));
     }
 }
