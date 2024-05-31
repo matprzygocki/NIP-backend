@@ -1,31 +1,29 @@
 import random
 from typing import BinaryIO
-
+import random_forest as rforest
 import numpy as np
 import tensorflow as tf
+import LSTMalgorithm as lstm
 from pandas import read_csv
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import LSTM
-from tensorflow.keras.models import Sequential
+
 
 import ai_logger as log
 
 SEED = 7
 
 
-def predict(path_or_content: str | BinaryIO, split_percentage):
+def predict(path_or_content: str | BinaryIO, split_percentage, algorithm):
     scaler = MinMaxScaler(feature_range=(0, 1))
     dataset = read_dataset(path_or_content, scaler)
-    return predict_from_dataset(dataset, scaler, split_percentage)
+    return predict_from_dataset(dataset, scaler, split_percentage, algorithm)
 
 
-def predict_from_dataset(dataset, scaler, split_percentage):
+
+def predict_from_dataset(dataset, scaler, split_percentage, algorithm):
     np.random.seed(SEED)
     tf.random.set_seed(SEED)
-    test, train = divide_dataset_into_training_and_test_data(dataset, split_percentage)
+    test, train = divide_dataset_into_training_and_test_data(dataset, split_percentage, algorithm)
 
     # reshape into X=t and Y=t+1
     look_back = 1
@@ -36,11 +34,23 @@ def predict_from_dataset(dataset, scaler, split_percentage):
     train_x = np.reshape(train_x, (train_x.shape[0], 1, train_x.shape[1]))
     test_x = np.reshape(test_x, (test_x.shape[0], 1, test_x.shape[1]))
 
-    model = create_model(test_x, test_y, train_x, train_y)
+    train_x_rf = train_x.reshape(-1, 1)
+    test_x_rf = test_x.reshape(-1, 1)
 
-    # make predictions
-    train_predict = model.predict(train_x)
-    test_predict = model.predict(test_x)
+    match(algorithm):
+        case 1:
+            model = lstm.create_model(test_x, test_y, train_x, train_y)
+            # make predictions
+            train_predict = model.predict(train_x)
+            test_predict = model.predict(test_x)
+        case 2:
+            # Użyj spłaszczonych danych dla algorytmu Random Forest
+
+            model = rforest.create_model(test_x_rf, test_y, train_x_rf, train_y)
+            # make predictions
+            train_predict = model.predict(train_x_rf)
+            test_predict = model.predict(test_x_rf)
+
 
     # invert predictions
     train_predict = scaler.inverse_transform(train_predict)
@@ -81,18 +91,7 @@ def shift_results(dataset, begin, end, prediction):
     return train_predict_plot
 
 
-def create_model(test_x, test_y, train_x, train_y):
-    model = Sequential()
-    model.add(LSTM(10, input_shape=(1, 1)))
-    model.add(Dense(1))
-    model.add(Dropout(0.03))
-    model.compile(loss='mean_squared_error', optimizer='adam')
-    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
-    model.fit(train_x, train_y, epochs=100, batch_size=3, verbose=5, callbacks=[es], validation_data=(test_x, test_y))
-    return model
-
-
-def divide_dataset_into_training_and_test_data(dataset, split_percentage):
+def divide_dataset_into_training_and_test_data(dataset, split_percentage, alg):
     random.shuffle(dataset)
     train_size = int(len(dataset) * split_percentage)
     train, test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]

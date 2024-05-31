@@ -8,6 +8,6 @@ import java.util.Optional;
 @Repository
 public interface AIResultsRepository extends JpaRepository<AIResultJPAEntity, String> {
 
-    Optional<AIResultJPAEntity> findByNameAndSplitEquals(String searchedName, double split);
+    Optional<AIResultJPAEntity> findByNameAndSplitAndAlgorithmEquals(String searchedName, double split, Integer alg);
 
 }

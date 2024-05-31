@@ -4,8 +4,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AIAPIRequestService {
 
-    String getResults(String name, Double splitPercentage);
+    String getResults(String name, Double splitPercentage, Integer alg);
 
-    String getResults(MultipartFile file, Double splitPercentage);
+    String getResults(MultipartFile file, Double splitPercentage, Integer alg);
 
 }

@@ -1,5 +1,5 @@
 Ports mapping:
-
+ - GUI                       : 8000
  - Keycloak                  : 8078
  - Eureka                    : 8079
  - Gateway                   : 8080

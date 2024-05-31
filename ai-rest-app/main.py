@@ -47,17 +47,17 @@ def health():
     return "AI-REST-APP-PY is up and running"
 
 
-@app.post("/predict/{predefined_file}/{split_percentage}", response_class=JSONResponse)
-def post_predict_existing_file(split_percentage: float, predefined_file: PredefinedLearningFile,
+@app.post("/predict/{predefined_file}/{split_percentage}/{algorithm}", response_class=JSONResponse)
+def post_predict_existing_file(split_percentage: float, algorithm: int, predefined_file: PredefinedLearningFile,
                                api_key: str = Security(get_api_key)):
-    result = service.predict(predefined_file.path(), split_percentage)
+    result = service.predict(predefined_file.path(), split_percentage, algorithm)
     result_map_encoded = jsonable_encoder(result)
     return JSONResponse(content=result_map_encoded)
 
 
-@app.post("/predict/{split_percentage}", response_class=JSONResponse)
-async def post_predict(split_percentage: float, file: UploadFile = File(...), api_key: str = Security(get_api_key)):
-    result = service.predict(file.file, split_percentage)
+@app.post("/predict/{split_percentage}/{algorithm}", response_class=JSONResponse)
+async def post_predict(split_percentage: float,algorithm: int, file: UploadFile = File(...), api_key: str = Security(get_api_key)):
+    result = service.predict(file.file, split_percentage,algorithm)
     result_map_encoded = jsonable_encoder(result)
     return JSONResponse(content=result_map_encoded)
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     import uvicorn
     import py_eureka_client.eureka_client as eureka_client
 
-    rest_port = 8086
+    rest_port = 8082
     eureka_client.init(
         eureka_server="http://localhost:8079/",
         app_name="AI-REST-APP-PY",

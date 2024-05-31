@@ -24,6 +24,7 @@ public class PredictionEndpoint {
     private static final Logger LOG = LoggerFactory.getLogger(PredictionEndpoint.class);
 
     private static final Double SPLIT_PERCENTAGE_DEFAULT = 0.67d;
+    private static final Integer ALGORITHM_DEFAULT = 1;
     private final AIResultsService resultsService;
     private final AIAPIRequestService AIAPIRequestService;
 
@@ -34,19 +35,23 @@ public class PredictionEndpoint {
 
     @PostMapping("{name}")
     @PreAuthorize("hasAnyAuthority('user', 'technician')")
-    public ResponseEntity<String> predict(@PathVariable String name, @QueryParam("splitPercentage") Double splitPercentage) {
+    public ResponseEntity<String> predict(@PathVariable String name, @QueryParam("splitPercentage") Double splitPercentage,
+                                          @QueryParam("algorithm") Integer algorithm) {
         LOG.info("Predicting AI...");
         Double split = splitPercentage == null ? SPLIT_PERCENTAGE_DEFAULT : splitPercentage;
-        Optional<AIResultJPAEntity> existingResult = resultsService.find(name, split);
+        Integer alg = algorithm == null ? ALGORITHM_DEFAULT : algorithm;
+        Optional<AIResultJPAEntity> existingResult = resultsService.find(name, split, alg);
         return existingResult
                 .map(entity -> ResponseEntity.ok(entity.getContent()))
-                .orElseGet(() -> ResponseEntity.ok(resultsService.createNew(name, split).getContent()));
+                .orElseGet(() -> ResponseEntity.ok(resultsService.createNew(name, split, alg).getContent()));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('technician')")
-    public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file, @QueryParam("splitPercentage") Double splitPercentage) {
+    public ResponseEntity<String> predict(@RequestParam("file") MultipartFile file, @QueryParam("splitPercentage") Double splitPercentage,
+                                          @QueryParam("algorithm") Integer algorithm) {
         Double split = splitPercentage == null ? SPLIT_PERCENTAGE_DEFAULT : splitPercentage;
-        return ResponseEntity.ok(AIAPIRequestService.getResults(file, split));
+        Integer alg = algorithm == null ? ALGORITHM_DEFAULT : algorithm;
+        return ResponseEntity.ok(AIAPIRequestService.getResults(file, split, alg));
     }
 }
