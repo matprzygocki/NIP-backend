@@ -42,6 +42,8 @@ public class AIResultJPAEntity {
     @Column(name = "split")
     private double split;
 
+    @Column(name = "algorithm")
+    private int algorithm;
     public String getContent() {
         return content;
     }
@@ -60,6 +62,10 @@ public class AIResultJPAEntity {
 
     public void setSplit(double split) {
         this.split = split;
+    }
+
+    public void setAlgorithm(int algorithm) {
+        this.algorithm = algorithm;
     }
 
 }

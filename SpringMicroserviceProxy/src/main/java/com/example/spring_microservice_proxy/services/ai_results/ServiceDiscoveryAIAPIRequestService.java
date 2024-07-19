@@ -30,9 +30,9 @@ class ServiceDiscoveryAIAPIRequestService implements AIAPIRequestService {
     }
 
     @Override
-    public String getResults(String name, Double splitPercentage) {
+    public String getResults(String name, Double splitPercentage, Integer alg) {
         return getAIWebClient().post()
-                .uri("/predict/" + name + "/" + splitPercentage)
+                .uri("/predict/" + name + "/" + splitPercentage+"/" + alg)
                 .header("X-API-Key", aiApiKey)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -40,12 +40,12 @@ class ServiceDiscoveryAIAPIRequestService implements AIAPIRequestService {
     }
 
     @Override
-    public String getResults(MultipartFile file, Double splitPercentage) {
+    public String getResults(MultipartFile file, Double splitPercentage, Integer alg) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("file", file.getResource());
 
         return getAIWebClient().post()
-                .uri("/predict/" + splitPercentage)
+                .uri("/predict/" + splitPercentage+"/" + alg)
                 .header("X-API-Key", aiApiKey)
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .retrieve()

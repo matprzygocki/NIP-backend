@@ -21,18 +21,19 @@ public class AIResultsService {
         this.aIAPIRequestService = aIAPIRequestService;
     }
 
-    public Optional<AIResultJPAEntity> find(String name, double splitPercentage) {
-        return repository.findByNameAndSplitEquals(name, splitPercentage);
+    public Optional<AIResultJPAEntity> find(String name, double splitPercentage, Integer alg) {
+        return repository.findByNameAndSplitAndAlgorithmEquals(name, splitPercentage, alg);
     }
 
-    public AIResultJPAEntity createNew(String name, Double splitPercentage) {
-        String result = aIAPIRequestService.getResults(name, splitPercentage);
+    public AIResultJPAEntity createNew(String name, Double splitPercentage, Integer alg) {
+        String result = aIAPIRequestService.getResults(name, splitPercentage, alg);
 
         AIResultJPAEntity entity = new AIResultJPAEntity();
         entity.setName(name);
         entity.setRequestedDate(Instant.now());
         entity.setContent(result);
         entity.setSplit(splitPercentage);
+        entity.setAlgorithm(alg);
 
         return repository.save(entity);
     }
